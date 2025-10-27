@@ -97,6 +97,8 @@ class PostServiceTest {
         // 반환 ID 검증
         assertThat(resultId).isEqualTo(1L);
     }
+
 }
+
 
 //ArgumentCaptor 사용하기

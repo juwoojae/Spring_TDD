@@ -45,6 +45,16 @@ class PostControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON));
     }
 
+    /**
+     * 명심하자. 예외 처리에 관한 테스트
+     * 어디서 처리해야 할까?
+     * 1. 전체 예외처리를 담당하는 ControllerAdviser
+     * 2. 예외를 실제로 던지는 Service
+     *
+     * 단일 테스트 방법
+     * Controller 에서 Mock 으로 Service 에서 예외를 던지고
+     * ControllerAdviser 가 응답을 날리면 그 응답으로 test 를 진행하자
+     */
     @Test
     void post_method_controller2() throws Exception {
         //given
@@ -65,5 +75,21 @@ class PostControllerTest {
         //실제로 postService 의 의존성을 사용했는지 확인하자
         verify(postService).create(any(PostRequestDTO.class));
 
+    }
+    @Test
+    void post_method_controller3() throws Exception {
+        //given
+        PostRequestDTO requestDTO = new PostRequestDTO();
+        requestDTO.setTitle("");
+        requestDTO.setContent("내용");
+
+        given(postService.create(any(PostRequestDTO.class))).willThrow(new IllegalArgumentException());
+
+        // when & then
+        mockMvc.perform(post("/post")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(requestDTO)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
     }
 }

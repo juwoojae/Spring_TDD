@@ -17,7 +17,11 @@ public class PostService {
     //crud method inpl
     public Long create(PostRequestDTO dto){
         PostEntity postEntity = new PostEntity();
-        postEntity.setTitle(dto.getTitle());
+        String title = dto.getTitle();
+        if(title.isEmpty()){
+            throw new IllegalArgumentException();
+        }
+        postEntity.setTitle(title);
         postEntity.setContent(dto.getContent());
         return postRepository.save(postEntity).getId();
     }
