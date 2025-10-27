@@ -1,5 +1,6 @@
 package com.example.spring_tdd.service;
 
+import com.example.spring_tdd.dto.GetResponseDTO;
 import com.example.spring_tdd.dto.PostRequestDTO;
 import com.example.spring_tdd.entity.PostEntity;
 import com.example.spring_tdd.repository.PostRepository;
@@ -11,6 +12,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
+
+import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -72,6 +75,14 @@ class PostServiceTest {
         verify(postRepository).save(any(PostEntity.class));
 
     }
+
+    /**
+     * dto → Entity 변환이 제대로 되는지 ✅
+     *
+     * postRepository.save()가 호출되는지 ✅
+     *
+     * 반환되는 id가 예상값과 일치하는지 ✅
+     */
     @Test
     void create_savesEntityAndReturnsId() {
         // given
@@ -79,6 +90,7 @@ class PostServiceTest {
         dto.setTitle("테스트 제목");
         dto.setContent("테스트 내용");
 
+        //postRepository.save Mock 구현
         PostEntity saved = new PostEntity();
         ReflectionTestUtils.setField(saved, "id", 1L); // Mocked DB ID
         given(postRepository.save(any(PostEntity.class))).willReturn(saved);
@@ -98,6 +110,31 @@ class PostServiceTest {
         assertThat(resultId).isEqualTo(1L);
     }
 
+    /**
+     * 1. id 를 넣었을때 ResponseDto 반환 하는가
+     * 2. PostRepository 의존성을 사용하는지
+     * 3. 반환되는 DTO가 예상값과 같은지
+     */
+    @Test
+    void read_findEntityAndReturnsId() {
+        // given
+        PostEntity findEntity = new PostEntity();
+        ReflectionTestUtils.setField(findEntity, "id", 1L); //원래 DB 에 들어가면 DB 가 설정해준다
+        findEntity.setContent("테스트 컨텐츠");
+        findEntity.setTitle("테스트 타이틀");
+        given(postRepository.findById(any(Long.class))).willReturn(Optional.of(findEntity));
+
+        // when
+        GetResponseDTO getResponseDTO = postService.read(1L);
+
+        // then
+        verify(postRepository).findById(1L);  // save 호출 확인
+
+        //DTO 검증
+        assertThat(getResponseDTO.getId()).isEqualTo(1L);
+        assertThat(getResponseDTO.getTitle()).isEqualTo("테스트 타이틀");
+        assertThat(getResponseDTO.getContent()).isEqualTo("테스트 컨텐츠");
+    }
 }
 
 
